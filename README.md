@@ -1,4 +1,4 @@
-# Kupr Processing API
+# KUPR Image Processing
 
 An API to analyze the similarity of shapes in images.
 
