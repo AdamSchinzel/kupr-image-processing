@@ -15,7 +15,7 @@ Body (multipart/form-data):
 
 Result (JSON):
 
-```
+```bash
 { "match": true/false }
 ```
 # kupr-image-processing
