@@ -1,0 +1,31 @@
+# Sets the stages for the pipeline
+stages:
+  - build
+  - deploy
+
+# Build Docker image
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker build --pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+
+# Deploy on Kubernetes
+deploy-staging:
+  stage: deploy
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  allow_failure: true
+  script:
+    - kubectl config set-context --current --namespace=default
+    - kubectl set image deployments/kupr-processing kupr-processing=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - kubectl rollout restart deployments/kupr-processing
